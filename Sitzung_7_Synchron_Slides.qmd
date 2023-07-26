@@ -281,7 +281,7 @@ data %>% ggplot(aes(x = factor(Kompetenzstufe), y = factor(Note), size = count))
 
 
 ## {{< fa circle-question >}} Ihre Fragen
-Bitte stellen Sie unter [https://bit.ly/merk106 {{< fa square-up-right >}}](https://bit.ly/merk106) Ihre Fragen zu Video & Aufgaben zum Thema Gruppenunterschiede. Klicken Sie dazu auf »Q & A«.<br><br>
+Bitte stellen Sie unter [https://bit.ly/merk106 {{< fa square-up-right >}}](https://bit.ly/merk106) Ihre Fragen zu Video & Aufgaben zu den Themen Korrelation und Inferenzstatistik. Klicken Sie dazu auf »Q & A«.<br><br>
 ```{r, out.width="70%", fig.align='center', echo = F, message = F}
 library(qrencoder)
 par(mar=c(0,0,0,0))
