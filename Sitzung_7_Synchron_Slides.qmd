@@ -1,0 +1,291 @@
+---
+title: "Vorlesung"
+subtitle: "Einführung in qualitative und quantitative Forschungsmethoden"
+author: "Samuel Merk"
+format: 
+  revealjs:
+    auto-stretch: false
+    self-contained: true
+    title-slide-attributes:
+      data-background-image: img/sash.svg
+      data-background-size: 30%
+      data-background-position: 0 0
+    slide-number: false
+    preview-links: false
+    pdf-separate-fragments: true
+    controls: true
+    logo: img/PHlogo.svg
+    theme: [simple, css/custom.scss]
+    fullscreen: true
+    pdfexport: true
+bibliography: references.bib
+csl: apa.csl
+---
+## Heutige Sitzung {.center .smaller}
+<br>
+[{{< fa dice >}}]{.imp} Auslosung
+
+<br>
+[{{< fa rotate-right >}}]{.imp}  Wdh. Inferenzstatistik anhand von Bsp.
+
+<br>
+[{{< fa arrow-down-long >}}]{.imp} Wdh. Korrelation anhand Daten
+
+<br>
+[{{< fa question-circle >}}]{.imp} Fragen zu Korrelation & Inferenzstatistik
+
+
+```{r hidden chunk which creates template stuff}
+#| echo: false
+
+## in terminal ########
+# quarto install extension quarto-ext/fontawesome
+# quarto install extension schochastics/academicons
+#
+
+########################
+library(fontawesome)
+library(tidyverse)
+
+# Change css to lecker PH green
+if(!dir.exists("img"))
+dir.create("img")
+if(!dir.exists("css"))
+dir.create("css")
+fileConn<-file("css/custom.scss")
+writeLines(c("/*-- scss:defaults --*/",
+             "$link-color: #8cd000 !default;"), fileConn)
+close(fileConn)
+
+# create sash with URL
+sash <- 
+  ggplot() + 
+  geom_polygon(data = tibble(x = c(0,4,5.5,0),
+                             y = c(1,5,5,-.5)),
+               aes(x,y), fill = "#8cd000") + 
+  coord_fixed() +
+  annotate(geom = "text", 
+           label = " ", 
+           x = .8, y = .8, 
+           angle = 45,
+           hjust = 0, vjust = 0,
+           size = 10,
+           color = "white") +
+ theme_void() + 
+ theme(plot.margin = margin(-2,0,0,-12, unit = "cm"))
+ggsave("img/sash.svg", sash)
+```
+
+```{css}
+.callout-title {background-color: #8cd000 !important;}
+
+.imp {
+  color: #8cd000;
+}
+
+.em08{
+  font-size: .8em;
+}
+.em07{
+  font-size: .7em;
+}
+
+.em15{
+  font-size: 1.5em;
+}
+
+
+figure>figcaption {
+    margin-top: 0.5em;
+    text-align: center;
+}
+
+.citation {
+  font-size: .8em;
+  color: #8cd000;
+}
+
+
+.timevis.html-widget .vis-background .vis-minor.vis-odd {
+  background: #8CD00030;
+  }
+  
+.vis-text {
+  color: #ffffff !important;
+  }
+  
+.vis-timeline {
+  border: transparent;
+  }
+  
+.vis-item {
+  border-color: #8CD000; 
+  background-color: #8CD000; 
+  color: #ffffff !important;
+}
+
+
+
+.vis-current-time {
+  background-color: #8CD00000;
+}
+  
+```
+
+
+
+## {{< fa dice >}} Auslosung {.center}
+```{r}
+#| label: Auslosung
+library(tidyverse)
+set.seed(2505)
+source("https://soscisurvey.ph-karlsruhe.de/FOME23/?act=kgcQZxRcN5int46JCEkJYbDm&rScript")  
+
+ds |> 
+  filter(lubridate::ymd_hms(STARTED) > lubridate::ymd_hms("2023-07-15 00:00:00") &
+           FINISHED == 1 &
+           substr(BG02, 1, 2) == "Ja") |> 
+  sample_n(4) |> 
+  mutate(`Gewinnercodes (ohne die letzten drei Stellen)` = substr(ZG03_01, 1, 9)) |> 
+  dplyr::select(`Gewinnercodes (ohne die letzten drei Stellen)`) |> 
+  mutate(Gutschein = c("Amazon 50€", "KA 10€", "KA 10€", "KA 10€"))
+```
+
+
+
+
+## Wdh. Korrelation
+### Sind Gewissenhaftigkeit und Noten assoziiert?
+Die Daten wurden wie folgt erhoben:
+```{r}
+#| echo: false
+#source("https://soscisurvey.ph-karlsruhe.de/FOME_WS22/?act=nXc3GAyp96p8kw9byWpteH2G&rScript")
+data <- 
+    ds %>% 
+    dplyr::select(BF_Gew1, BF_Gew2, BF_Gew3, AS02_01) %>% 
+    na.omit() %>% 
+    rowwise() %>% 
+    mutate(Gew = mean(c(BF_Gew1, BF_Gew2, BF_Gew3), na.rm = T)) %>%
+    ungroup() %>% 
+    relocate(BF_Gew1, BF_Gew2, BF_Gew3, Gew, AS02_01) %>% 
+    mutate(NC = as.numeric(AS02_01))
+
+data %>% 
+    sample_n(3) %>% 
+    knitr::kable()
+```
+
+
+
+## Wdh. - Eingangsbefragung {.center .smaller}
+### Sind Gewissenhaftigkeit und Noten assoziiert?
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+```{r}
+#| echo: false
+#| fig-width: 5
+library(hrbrthemes)
+library(tidyverse)
+ggplot(data, aes(Gew, NC)) + 
+    geom_jitter() + 
+    stat_smooth(method = "lm") +
+    theme_modern_rc() +
+    ggtitle("Assoziation", "von NC und Gewissenhaftigkeit") +
+    coord_cartesian(ylim = c(1,4))
+```
+
+:::
+
+::: {.column width="50%"}
+Für Ihre Daten ergibt sich 
+```{r}
+cor.test(data$NC, data$Gew)
+```
+
+
+<br>
+
+> Wie kann man diese Effektstärke interpretieren?
+:::
+
+::::
+
+
+## Wdh. Kendal's $\tau$ am Beispiel Notenfairness {.smaller}
+
+Stellen Sie sich vor, sie haben die Noten sowie die objektiviert gemessenen Kompetenzstufen aller $N=12350$ Achtklässlerinnen und Achtklässern eines Bundeslandes in einem Datensatz. 
+
+## Bubbleplot
+```{r}
+#| label: data
+#| echo: false
+library(tidyverse)
+data <- tibble(Note = c(rep(1 ,4), rep(1, 28), rep(1, 62), rep(1, 204),
+                  rep(2, 62), rep(2, 335), rep(2, 576), rep(2, 812), rep(2, 810),
+                  rep(3,469), rep(3,1282), rep(3,1398), rep(3,1074), rep(3,430),
+                  rep(4,844), rep(4,1341), rep(4,904), rep(4,412), rep(4,91),
+                  rep(5,501), rep(5,390), rep(5,142), rep(5,40), rep(5,5),
+                  rep(6,83), rep(6,37), rep(6,7), rep(6,5), rep(6,2)
+                  ),
+         Kompetenzstufe = c(rep(2, 4), rep(3, 28), rep(4, 62), rep(5,204),
+                            rep(1, 62), rep(2, 335), rep(3, 576), rep(4, 812), rep(5, 810),
+                            rep(1,469), rep(2,1282), rep(3,1398), rep(4,1074), rep(5,430),
+                            rep(1,844), rep(2,1341), rep(3,904), rep(4,412), rep(5,91),
+                            rep(1,501), rep(2,390), rep(3,142), rep(4,40), rep(5,5),
+                            rep(1,83), rep(2,37), rep(3,7), rep(4,5), rep(5,2)
+                  ))
+haven::write_sav(data %>% 
+                   mutate(Note = as.ordered(Note),
+                          Kompetenzstufe = as.ordered(Kompetenzstufe)),
+                 "data_Noten_Kompetenzstufen.sav")
+head(data)
+```
+
+<br>
+
+> Was denken Sie: Wie sieht ein »Bubble Plot« aus, der die Assoziation dieser beiden Variablen beschreibt? 
+
+## Bubble Plot
+```{r}
+#| echo: false
+data %>% group_by(Note, Kompetenzstufe) %>% mutate(count = n()) -> data
+
+data %>% ggplot(aes(x = factor(Kompetenzstufe), y = factor(Note), size = count)) +
+  ylab("Halbjahresnote (1.HJ, Kl. 8)") +
+  xlab("Kompetenzstufe (Vera-8)") +
+  ggtitle("Fairness", "von Noten") +
+  theme_modern_rc()
+
+```
+
+
+## Bubble Plot
+```{r}
+#| echo: false
+library(tidyverse)
+data %>% ggplot(aes(x = factor(Kompetenzstufe), y = factor(Note), size = count)) +
+  geom_point() +
+  geom_text(aes(label=count), size = 3, color = "white") +
+  scale_size(range = c(3, 25)) +
+  scale_y_discrete() +
+  guides(size = "none") +
+  ylab("Halbjahresnote (1.HJ, Kl. 8)") +
+  xlab("Kompetenzstufe (Vera-8)") +
+  theme_modern_rc() +
+  ggtitle("Fairness", "von Noten") 
+
+```
+
+
+## {{< fa circle-question >}} Ihre Fragen
+Bitte stellen Sie unter [https://bit.ly/merk106 {{< fa square-up-right >}}](https://bit.ly/merk106) Ihre Fragen zu Video & Aufgaben zum Thema Gruppenunterschiede. Klicken Sie dazu auf »Q & A«.<br><br>
+```{r, out.width="70%", fig.align='center', echo = F, message = F}
+library(qrencoder)
+par(mar=c(0,0,0,0))
+image(qrencode_raster("https://bit.ly/merk106"), 
+      asp=1, col=c("#00000000", "#267326"), axes=FALSE, 
+      xlab="", ylab="", bg = 'transparent')
+```
